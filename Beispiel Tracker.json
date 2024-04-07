@@ -1,0 +1,1773 @@
+[
+    {
+        "id": "f5cb77edbcc82750",
+        "type": "tab",
+        "label": "Backmarket Tracker",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "2631cfcc39fbabc5",
+        "type": "http request",
+        "z": "f5cb77edbcc82750",
+        "name": "Preis abfragen",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://www.backmarket.de/de-de/p/samsung-galaxy-s22-256-gb-schwarz-ohne-vertrag/4ca7c69c-ff6f-4383-91f7-80681ad9f08d#l=12&scroll=false",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 520,
+        "y": 140,
+        "wires": [
+            [
+                "340f8c89f8f99fca"
+            ]
+        ]
+    },
+    {
+        "id": "71784fbb748cdb87",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Tägliche Abfrage",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "00 14 * * *",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 290,
+        "y": 140,
+        "wires": [
+            [
+                "2631cfcc39fbabc5"
+            ]
+        ]
+    },
+    {
+        "id": "340f8c89f8f99fca",
+        "type": "html",
+        "z": "f5cb77edbcc82750",
+        "name": "Preis Extrahieren",
+        "property": "",
+        "outproperty": "",
+        "tag": "div[data-test=\"normal-price\"][class=\"text-primary\"]",
+        "ret": "text",
+        "as": "single",
+        "x": 770,
+        "y": 140,
+        "wires": [
+            [
+                "2128dbd4d4049f94"
+            ]
+        ]
+    },
+    {
+        "id": "2128dbd4d4049f94",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "String to Number",
+        "func": "var priceArray = msg.payload; // Annahme: msg.payload ist das Array mit einem String\nvar priceString = priceArray[0]; // Extrahiere den String aus dem Array\nvar priceNumber = parseFloat(priceString.replace(',', '.')); ; // Entferne alle Nicht-Zahlen-Zeichen und konvertiere den String in eine Zahl\n\nmsg.payload = priceNumber; // Setze den numerischen Wert als das neue Payload\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1010,
+        "y": 140,
+        "wires": [
+            [
+                "84019e4ed91e09e4",
+                "88f89b0a188d7b83"
+            ]
+        ]
+    },
+    {
+        "id": "6b97740a00aa846e",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Test Value",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "397",
+        "payloadType": "num",
+        "x": 260,
+        "y": 200,
+        "wires": [
+            [
+                "88f89b0a188d7b83"
+            ]
+        ]
+    },
+    {
+        "id": "88f89b0a188d7b83",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "Datum hinzufügen",
+        "func": "// Erhalten Sie den eingehenden Wert\nvar eingehenderWert = msg.payload;\n\n// Erstellen Sie ein Date-Objekt für das aktuelle Datum\nvar aktuellesDatum = new Date();\n\n// Extrahieren Sie Tag, Monat und Jahr\nvar tag = aktuellesDatum.getDate();\nvar monat = aktuellesDatum.getMonth() + 1; // Monate werden von 0 bis 11 gezählt, daher +1\nvar jahr = aktuellesDatum.getFullYear();\n\n// Fügen Sie führende Nullen hinzu, falls erforderlich\nif (tag < 10) {\n    tag = '0' + tag;\n}\nif (monat < 10) {\n    monat = '0' + monat;\n}\n\n// Erstellen Sie das Datum im gewünschten Format (DD-MM-YYYY)\nvar formatiertesDatum = tag + '-' + monat + '-' + jahr;\n\n// Erstellen Sie das JSON-Objekt mit dem Datum und dem empfangenen Wert\nvar jsonObjekt = {\n    \"datum\": formatiertesDatum,\n    \"preis\": eingehenderWert\n};\n\n// Senden Sie das JSON-Objekt weiter\nmsg.payload = jsonObjekt;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 530,
+        "y": 200,
+        "wires": [
+            [
+                "9d6a0f18.c6abf8"
+            ]
+        ]
+    },
+    {
+        "id": "9d6a0f18.c6abf8",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "JSON zu CSV",
+        "func": "var datum = msg.payload.datum; // Datum aus dem JSON-Objekt\nvar wert = msg.payload.preis; // Wert aus dem JSON-Objekt\n\n// CSV-Format erstellen\nvar csvString = datum + ',' + wert;\n\nmsg.payload = csvString; // Das CSV-Format als Payload setzen\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 200,
+        "wires": [
+            [
+                "b2d80e2f.4b7198"
+            ]
+        ]
+    },
+    {
+        "id": "b2d80e2f.4b7198",
+        "type": "file",
+        "z": "f5cb77edbcc82750",
+        "name": "Speichern in CSV",
+        "filename": "/home/spb/s22+-schwarz.csv",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 1010,
+        "y": 200,
+        "wires": [
+            [
+                "c9c4fbb5c3bc55ab"
+            ]
+        ]
+    },
+    {
+        "id": "c9c4fbb5c3bc55ab",
+        "type": "file in",
+        "z": "f5cb77edbcc82750",
+        "name": "Lesen aus CSV",
+        "filename": "/home/spb/s22+-schwarz.csv",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 520,
+        "y": 260,
+        "wires": [
+            [
+                "9a1b5ee138f6ce3f"
+            ]
+        ]
+    },
+    {
+        "id": "edd67e174f4eb021",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Update Graph",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 270,
+        "y": 260,
+        "wires": [
+            [
+                "c9c4fbb5c3bc55ab"
+            ]
+        ]
+    },
+    {
+        "id": "9a1b5ee138f6ce3f",
+        "type": "csv",
+        "z": "f5cb77edbcc82750",
+        "name": "CSV zu JSON",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": true,
+        "x": 760,
+        "y": 260,
+        "wires": [
+            [
+                "53031eb3eeee32da"
+            ]
+        ]
+    },
+    {
+        "id": "2a90360ec3b2e877",
+        "type": "ui_chart",
+        "z": "f5cb77edbcc82750",
+        "name": "",
+        "group": "34cf65dc63cc3a0b",
+        "order": 1,
+        "width": "6",
+        "height": "6",
+        "label": "S22+ Schwarz",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "Y-M-D",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "300",
+        "ymax": "450",
+        "removeOlder": "10",
+        "removeOlderPoints": "1000",
+        "removeOlderUnit": "604800",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 1260,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "53031eb3eeee32da",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "Convert to Chart Data",
+        "func": "// Überprüfen, ob die Nachricht ein gültiges JSON-Objekt enthält\nif (msg.payload && typeof msg.payload === 'object' && msg.payload.Datum && msg.payload.Preis) {\n    // Extrahiere Datum und Preis aus dem JSON-Objekt\n    const datumParts = msg.payload.Datum.split('-'); // Splitte das Datum in Tag, Monat und Jahr\n    const tag = parseInt(datumParts[0], 10);\n    const monat = parseInt(datumParts[1], 10) - 1; // Monate in JavaScript sind 0-basiert\n    const jahr = parseInt(datumParts[2], 10);\n\n    // Erstelle ein neues Datumobjekt\n    const datumObjekt = new Date(jahr, monat, tag);\n\n    // Ändere msg.timestamp zu dem angegebenen Datum\n    msg.timestamp = datumObjekt.getTime(); // Hier wird das Datum in Millisekunden seit dem 1. Januar 1970 (Unix-Zeit) umgewandelt\n\n    // Setze msg.payload auf den Preis\n    msg.payload = msg.payload.Preis;\n\n    // Fertige Nachricht senden\n    return msg;\n} else {\n    // Wenn die Nachricht nicht das erwartete Format hat, logge einen Fehler und sende die unveränderte Nachricht\n    node.error(\"Ungültiges Nachrichtenformat. Erwarte {\\\"Datum\\\":\\\"07-04-2024\\\",\\\"Preis\\\":397}\");\n    return null;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 260,
+        "wires": [
+            [
+                "2a90360ec3b2e877",
+                "7fe8e20fe8b8808f"
+            ]
+        ]
+    },
+    {
+        "id": "84019e4ed91e09e4",
+        "type": "debug",
+        "z": "f5cb77edbcc82750",
+        "name": "S22+",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1230,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "bda23ceb1419f378",
+        "type": "http request",
+        "z": "f5cb77edbcc82750",
+        "name": "Preis abfragen",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://www.backmarket.de/de-de/p/samsung-galaxy-s22-5g-256-gb-grau-ohne-vertrag/67bd1dd0-2fc8-45f8-8a2c-c95508f73583#l=12&scroll=false",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 520,
+        "y": 380,
+        "wires": [
+            [
+                "0d03a59b2d8b4292"
+            ]
+        ]
+    },
+    {
+        "id": "166e8c913d47c49c",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Tägliche Abfrage",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "05 14 * * *",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 290,
+        "y": 380,
+        "wires": [
+            [
+                "bda23ceb1419f378"
+            ]
+        ]
+    },
+    {
+        "id": "0d03a59b2d8b4292",
+        "type": "html",
+        "z": "f5cb77edbcc82750",
+        "name": "Preis Extrahieren",
+        "property": "",
+        "outproperty": "",
+        "tag": "div[data-test=\"normal-price\"][class=\"text-primary\"]",
+        "ret": "text",
+        "as": "single",
+        "x": 770,
+        "y": 380,
+        "wires": [
+            [
+                "7f05483899ddf5ed"
+            ]
+        ]
+    },
+    {
+        "id": "7f05483899ddf5ed",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "String to Number",
+        "func": "var priceArray = msg.payload; // Annahme: msg.payload ist das Array mit einem String\nvar priceString = priceArray[0]; // Extrahiere den String aus dem Array\nvar priceNumber = parseFloat(priceString.replace(',', '.')); ; // Entferne alle Nicht-Zahlen-Zeichen und konvertiere den String in eine Zahl\n\nmsg.payload = priceNumber; // Setze den numerischen Wert als das neue Payload\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1010,
+        "y": 380,
+        "wires": [
+            [
+                "7e80cfd52c324b83",
+                "43514fdf61c36057"
+            ]
+        ]
+    },
+    {
+        "id": "384119af7a30d02b",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Test Value",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "397",
+        "payloadType": "num",
+        "x": 260,
+        "y": 440,
+        "wires": [
+            [
+                "43514fdf61c36057"
+            ]
+        ]
+    },
+    {
+        "id": "43514fdf61c36057",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "Datum hinzufügen",
+        "func": "// Erhalten Sie den eingehenden Wert\nvar eingehenderWert = msg.payload;\n\n// Erstellen Sie ein Date-Objekt für das aktuelle Datum\nvar aktuellesDatum = new Date();\n\n// Extrahieren Sie Tag, Monat und Jahr\nvar tag = aktuellesDatum.getDate();\nvar monat = aktuellesDatum.getMonth() + 1; // Monate werden von 0 bis 11 gezählt, daher +1\nvar jahr = aktuellesDatum.getFullYear();\n\n// Fügen Sie führende Nullen hinzu, falls erforderlich\nif (tag < 10) {\n    tag = '0' + tag;\n}\nif (monat < 10) {\n    monat = '0' + monat;\n}\n\n// Erstellen Sie das Datum im gewünschten Format (DD-MM-YYYY)\nvar formatiertesDatum = tag + '-' + monat + '-' + jahr;\n\n// Erstellen Sie das JSON-Objekt mit dem Datum und dem empfangenen Wert\nvar jsonObjekt = {\n    \"datum\": formatiertesDatum,\n    \"preis\": eingehenderWert\n};\n\n// Senden Sie das JSON-Objekt weiter\nmsg.payload = jsonObjekt;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 530,
+        "y": 440,
+        "wires": [
+            [
+                "8704104d3a57b96c"
+            ]
+        ]
+    },
+    {
+        "id": "8704104d3a57b96c",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "JSON zu CSV",
+        "func": "var datum = msg.payload.datum; // Datum aus dem JSON-Objekt\nvar wert = msg.payload.preis; // Wert aus dem JSON-Objekt\n\n// CSV-Format erstellen\nvar csvString = datum + ',' + wert;\n\nmsg.payload = csvString; // Das CSV-Format als Payload setzen\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 440,
+        "wires": [
+            [
+                "e592a86b31882ece"
+            ]
+        ]
+    },
+    {
+        "id": "e592a86b31882ece",
+        "type": "file",
+        "z": "f5cb77edbcc82750",
+        "name": "Speichern in CSV",
+        "filename": "/home/spb/s22-schwarz.csv",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 1010,
+        "y": 440,
+        "wires": [
+            [
+                "020b3e126e80afb4"
+            ]
+        ]
+    },
+    {
+        "id": "020b3e126e80afb4",
+        "type": "file in",
+        "z": "f5cb77edbcc82750",
+        "name": "Lesen aus CSV",
+        "filename": "/home/spb/s22-schwarz.csv",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 520,
+        "y": 500,
+        "wires": [
+            [
+                "d2563af8f04ac3b2"
+            ]
+        ]
+    },
+    {
+        "id": "860c052ec8dd4e0e",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Update Graph",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 270,
+        "y": 500,
+        "wires": [
+            [
+                "020b3e126e80afb4"
+            ]
+        ]
+    },
+    {
+        "id": "d2563af8f04ac3b2",
+        "type": "csv",
+        "z": "f5cb77edbcc82750",
+        "name": "CSV zu JSON",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": true,
+        "x": 760,
+        "y": 500,
+        "wires": [
+            [
+                "8ac42402e173c468"
+            ]
+        ]
+    },
+    {
+        "id": "a8ad57eba3a1e355",
+        "type": "ui_chart",
+        "z": "f5cb77edbcc82750",
+        "name": "",
+        "group": "34cf65dc63cc3a0b",
+        "order": 2,
+        "width": "6",
+        "height": "6",
+        "label": "S22 Schwarz",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "Y-M-D",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "300",
+        "ymax": "450",
+        "removeOlder": "10",
+        "removeOlderPoints": "1000",
+        "removeOlderUnit": "604800",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 1250,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8ac42402e173c468",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "Convert to Chart Data",
+        "func": "// Überprüfen, ob die Nachricht ein gültiges JSON-Objekt enthält\nif (msg.payload && typeof msg.payload === 'object' && msg.payload.Datum && msg.payload.Preis) {\n    // Extrahiere Datum und Preis aus dem JSON-Objekt\n    const datumParts = msg.payload.Datum.split('-'); // Splitte das Datum in Tag, Monat und Jahr\n    const tag = parseInt(datumParts[0], 10);\n    const monat = parseInt(datumParts[1], 10) - 1; // Monate in JavaScript sind 0-basiert\n    const jahr = parseInt(datumParts[2], 10);\n\n    // Erstelle ein neues Datumobjekt\n    const datumObjekt = new Date(jahr, monat, tag);\n\n    // Ändere msg.timestamp zu dem angegebenen Datum\n    msg.timestamp = datumObjekt.getTime(); // Hier wird das Datum in Millisekunden seit dem 1. Januar 1970 (Unix-Zeit) umgewandelt\n\n    // Setze msg.payload auf den Preis\n    msg.payload = msg.payload.Preis;\n\n    // Fertige Nachricht senden\n    return msg;\n} else {\n    // Wenn die Nachricht nicht das erwartete Format hat, logge einen Fehler und sende die unveränderte Nachricht\n    node.error(\"Ungültiges Nachrichtenformat. Erwarte {\\\"Datum\\\":\\\"07-04-2024\\\",\\\"Preis\\\":397}\");\n    return null;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 500,
+        "wires": [
+            [
+                "a8ad57eba3a1e355",
+                "aada25a80b373942"
+            ]
+        ]
+    },
+    {
+        "id": "7e80cfd52c324b83",
+        "type": "debug",
+        "z": "f5cb77edbcc82750",
+        "name": "S22",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1230,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "34a8963bc72c315b",
+        "type": "http request",
+        "z": "f5cb77edbcc82750",
+        "name": "Preis abfragen",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://www.backmarket.de/de-de/p/samsung-galaxy-s21-plus-5g-256-gb-schwarz-ohne-vertrag/d4c30914-87c5-4742-baa2-1d63b66a50d3#l=12&scroll=false",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 520,
+        "y": 620,
+        "wires": [
+            [
+                "8d972e30d2de808a"
+            ]
+        ]
+    },
+    {
+        "id": "9c6239c094188f24",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Tägliche Abfrage",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "10 14 * * *",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 290,
+        "y": 620,
+        "wires": [
+            [
+                "34a8963bc72c315b"
+            ]
+        ]
+    },
+    {
+        "id": "8d972e30d2de808a",
+        "type": "html",
+        "z": "f5cb77edbcc82750",
+        "name": "Preis Extrahieren",
+        "property": "",
+        "outproperty": "",
+        "tag": "div[data-test=\"normal-price\"][class=\"text-primary\"]",
+        "ret": "text",
+        "as": "single",
+        "x": 770,
+        "y": 620,
+        "wires": [
+            [
+                "aaed839749f34752"
+            ]
+        ]
+    },
+    {
+        "id": "aaed839749f34752",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "String to Number",
+        "func": "var priceArray = msg.payload; // Annahme: msg.payload ist das Array mit einem String\nvar priceString = priceArray[0]; // Extrahiere den String aus dem Array\nvar priceNumber = parseFloat(priceString.replace(',', '.')); ; // Entferne alle Nicht-Zahlen-Zeichen und konvertiere den String in eine Zahl\n\nmsg.payload = priceNumber; // Setze den numerischen Wert als das neue Payload\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1010,
+        "y": 620,
+        "wires": [
+            [
+                "0b1dab9cf86ca590",
+                "deb6a8a33365d981"
+            ]
+        ]
+    },
+    {
+        "id": "a86875d1b43ee1eb",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Test Value",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "397",
+        "payloadType": "num",
+        "x": 260,
+        "y": 680,
+        "wires": [
+            [
+                "deb6a8a33365d981"
+            ]
+        ]
+    },
+    {
+        "id": "deb6a8a33365d981",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "Datum hinzufügen",
+        "func": "// Erhalten Sie den eingehenden Wert\nvar eingehenderWert = msg.payload;\n\n// Erstellen Sie ein Date-Objekt für das aktuelle Datum\nvar aktuellesDatum = new Date();\n\n// Extrahieren Sie Tag, Monat und Jahr\nvar tag = aktuellesDatum.getDate();\nvar monat = aktuellesDatum.getMonth() + 1; // Monate werden von 0 bis 11 gezählt, daher +1\nvar jahr = aktuellesDatum.getFullYear();\n\n// Fügen Sie führende Nullen hinzu, falls erforderlich\nif (tag < 10) {\n    tag = '0' + tag;\n}\nif (monat < 10) {\n    monat = '0' + monat;\n}\n\n// Erstellen Sie das Datum im gewünschten Format (DD-MM-YYYY)\nvar formatiertesDatum = tag + '-' + monat + '-' + jahr;\n\n// Erstellen Sie das JSON-Objekt mit dem Datum und dem empfangenen Wert\nvar jsonObjekt = {\n    \"datum\": formatiertesDatum,\n    \"preis\": eingehenderWert\n};\n\n// Senden Sie das JSON-Objekt weiter\nmsg.payload = jsonObjekt;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 530,
+        "y": 680,
+        "wires": [
+            [
+                "b22abd3d684a53f3"
+            ]
+        ]
+    },
+    {
+        "id": "b22abd3d684a53f3",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "JSON zu CSV",
+        "func": "var datum = msg.payload.datum; // Datum aus dem JSON-Objekt\nvar wert = msg.payload.preis; // Wert aus dem JSON-Objekt\n\n// CSV-Format erstellen\nvar csvString = datum + ',' + wert;\n\nmsg.payload = csvString; // Das CSV-Format als Payload setzen\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 680,
+        "wires": [
+            [
+                "e2a2467894cf8899"
+            ]
+        ]
+    },
+    {
+        "id": "e2a2467894cf8899",
+        "type": "file",
+        "z": "f5cb77edbcc82750",
+        "name": "Speichern in CSV",
+        "filename": "/home/spb/s21+-schwarz.csv",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 1010,
+        "y": 680,
+        "wires": [
+            [
+                "7d5424f3c9d2c133"
+            ]
+        ]
+    },
+    {
+        "id": "7d5424f3c9d2c133",
+        "type": "file in",
+        "z": "f5cb77edbcc82750",
+        "name": "Lesen aus CSV",
+        "filename": "/home/spb/s21+-schwarz.csv",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 520,
+        "y": 740,
+        "wires": [
+            [
+                "5e35987aecf7da45"
+            ]
+        ]
+    },
+    {
+        "id": "284785130217f235",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Update Graph",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 270,
+        "y": 740,
+        "wires": [
+            [
+                "7d5424f3c9d2c133"
+            ]
+        ]
+    },
+    {
+        "id": "5e35987aecf7da45",
+        "type": "csv",
+        "z": "f5cb77edbcc82750",
+        "name": "CSV zu JSON",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": true,
+        "x": 760,
+        "y": 740,
+        "wires": [
+            [
+                "77c0feaef077143f"
+            ]
+        ]
+    },
+    {
+        "id": "41be6899e09b38ff",
+        "type": "ui_chart",
+        "z": "f5cb77edbcc82750",
+        "name": "",
+        "group": "34cf65dc63cc3a0b",
+        "order": 3,
+        "width": "6",
+        "height": "6",
+        "label": "S21+ Schwarz",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "Y-M-D",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "300",
+        "ymax": "450",
+        "removeOlder": "10",
+        "removeOlderPoints": "1000",
+        "removeOlderUnit": "604800",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 1260,
+        "y": 740,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "77c0feaef077143f",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "Convert to Chart Data",
+        "func": "// Überprüfen, ob die Nachricht ein gültiges JSON-Objekt enthält\nif (msg.payload && typeof msg.payload === 'object' && msg.payload.Datum && msg.payload.Preis) {\n    // Extrahiere Datum und Preis aus dem JSON-Objekt\n    const datumParts = msg.payload.Datum.split('-'); // Splitte das Datum in Tag, Monat und Jahr\n    const tag = parseInt(datumParts[0], 10);\n    const monat = parseInt(datumParts[1], 10) - 1; // Monate in JavaScript sind 0-basiert\n    const jahr = parseInt(datumParts[2], 10);\n\n    // Erstelle ein neues Datumobjekt\n    const datumObjekt = new Date(jahr, monat, tag);\n\n    // Ändere msg.timestamp zu dem angegebenen Datum\n    msg.timestamp = datumObjekt.getTime(); // Hier wird das Datum in Millisekunden seit dem 1. Januar 1970 (Unix-Zeit) umgewandelt\n\n    // Setze msg.payload auf den Preis\n    msg.payload = msg.payload.Preis;\n\n    // Fertige Nachricht senden\n    return msg;\n} else {\n    // Wenn die Nachricht nicht das erwartete Format hat, logge einen Fehler und sende die unveränderte Nachricht\n    node.error(\"Ungültiges Nachrichtenformat. Erwarte {\\\"Datum\\\":\\\"07-04-2024\\\",\\\"Preis\\\":397}\");\n    return null;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 740,
+        "wires": [
+            [
+                "41be6899e09b38ff",
+                "44c2fb79b1f45c71"
+            ]
+        ]
+    },
+    {
+        "id": "0b1dab9cf86ca590",
+        "type": "debug",
+        "z": "f5cb77edbcc82750",
+        "name": "S21+",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1230,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "4411784d3eb722f4",
+        "type": "http request",
+        "z": "f5cb77edbcc82750",
+        "name": "Preis abfragen",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://www.backmarket.de/de-de/p/samsung-galaxy-s21-fe-5g-256-gb-schwarz-ohne-vertrag/b11fe636-6e18-4c87-8f80-13cd75c61f04#l=11&scroll=false",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 520,
+        "y": 860,
+        "wires": [
+            [
+                "f8c603061da3c632"
+            ]
+        ]
+    },
+    {
+        "id": "07b02e21153dbe6f",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Tägliche Abfrage",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "15 14 * * *",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 290,
+        "y": 860,
+        "wires": [
+            [
+                "4411784d3eb722f4"
+            ]
+        ]
+    },
+    {
+        "id": "f8c603061da3c632",
+        "type": "html",
+        "z": "f5cb77edbcc82750",
+        "name": "Preis Extrahieren",
+        "property": "",
+        "outproperty": "",
+        "tag": "div[data-test=\"normal-price\"][class=\"text-primary\"]",
+        "ret": "text",
+        "as": "single",
+        "x": 770,
+        "y": 860,
+        "wires": [
+            [
+                "94611e56e5877719"
+            ]
+        ]
+    },
+    {
+        "id": "94611e56e5877719",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "String to Number",
+        "func": "var priceArray = msg.payload; // Annahme: msg.payload ist das Array mit einem String\nvar priceString = priceArray[0]; // Extrahiere den String aus dem Array\nvar priceNumber = parseFloat(priceString.replace(',', '.')); ; // Entferne alle Nicht-Zahlen-Zeichen und konvertiere den String in eine Zahl\n\nmsg.payload = priceNumber; // Setze den numerischen Wert als das neue Payload\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1010,
+        "y": 860,
+        "wires": [
+            [
+                "3cbd8d858fa50475",
+                "85780d08b03be995"
+            ]
+        ]
+    },
+    {
+        "id": "11c0e4d0cd019ec1",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Test Value",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "397",
+        "payloadType": "num",
+        "x": 260,
+        "y": 920,
+        "wires": [
+            [
+                "85780d08b03be995"
+            ]
+        ]
+    },
+    {
+        "id": "85780d08b03be995",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "Datum hinzufügen",
+        "func": "// Erhalten Sie den eingehenden Wert\nvar eingehenderWert = msg.payload;\n\n// Erstellen Sie ein Date-Objekt für das aktuelle Datum\nvar aktuellesDatum = new Date();\n\n// Extrahieren Sie Tag, Monat und Jahr\nvar tag = aktuellesDatum.getDate();\nvar monat = aktuellesDatum.getMonth() + 1; // Monate werden von 0 bis 11 gezählt, daher +1\nvar jahr = aktuellesDatum.getFullYear();\n\n// Fügen Sie führende Nullen hinzu, falls erforderlich\nif (tag < 10) {\n    tag = '0' + tag;\n}\nif (monat < 10) {\n    monat = '0' + monat;\n}\n\n// Erstellen Sie das Datum im gewünschten Format (DD-MM-YYYY)\nvar formatiertesDatum = tag + '-' + monat + '-' + jahr;\n\n// Erstellen Sie das JSON-Objekt mit dem Datum und dem empfangenen Wert\nvar jsonObjekt = {\n    \"datum\": formatiertesDatum,\n    \"preis\": eingehenderWert\n};\n\n// Senden Sie das JSON-Objekt weiter\nmsg.payload = jsonObjekt;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 530,
+        "y": 920,
+        "wires": [
+            [
+                "966cedb69b520c61"
+            ]
+        ]
+    },
+    {
+        "id": "966cedb69b520c61",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "JSON zu CSV",
+        "func": "var datum = msg.payload.datum; // Datum aus dem JSON-Objekt\nvar wert = msg.payload.preis; // Wert aus dem JSON-Objekt\n\n// CSV-Format erstellen\nvar csvString = datum + ',' + wert;\n\nmsg.payload = csvString; // Das CSV-Format als Payload setzen\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 920,
+        "wires": [
+            [
+                "fb3a8e2ef47a29db"
+            ]
+        ]
+    },
+    {
+        "id": "fb3a8e2ef47a29db",
+        "type": "file",
+        "z": "f5cb77edbcc82750",
+        "name": "Speichern in CSV",
+        "filename": "/home/spb/s21Fe-grau.csv",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 1010,
+        "y": 920,
+        "wires": [
+            [
+                "c90b96cf945d8533"
+            ]
+        ]
+    },
+    {
+        "id": "c90b96cf945d8533",
+        "type": "file in",
+        "z": "f5cb77edbcc82750",
+        "name": "Lesen aus CSV",
+        "filename": "/home/spb/s21Fe-grau.csv",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 520,
+        "y": 980,
+        "wires": [
+            [
+                "4708fb12ed6fb62e"
+            ]
+        ]
+    },
+    {
+        "id": "3aa48cc356639727",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Update Graph",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 270,
+        "y": 980,
+        "wires": [
+            [
+                "c90b96cf945d8533"
+            ]
+        ]
+    },
+    {
+        "id": "4708fb12ed6fb62e",
+        "type": "csv",
+        "z": "f5cb77edbcc82750",
+        "name": "CSV zu JSON",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": true,
+        "x": 760,
+        "y": 980,
+        "wires": [
+            [
+                "8e32f7b56fb04aaf"
+            ]
+        ]
+    },
+    {
+        "id": "2f422bd1a5e03fc6",
+        "type": "ui_chart",
+        "z": "f5cb77edbcc82750",
+        "name": "",
+        "group": "34cf65dc63cc3a0b",
+        "order": 4,
+        "width": "6",
+        "height": "6",
+        "label": "S21Fe Grau",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "Y-M-D",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "300",
+        "ymax": "450",
+        "removeOlder": "10",
+        "removeOlderPoints": "1000",
+        "removeOlderUnit": "604800",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 1250,
+        "y": 980,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8e32f7b56fb04aaf",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "Convert to Chart Data",
+        "func": "// Überprüfen, ob die Nachricht ein gültiges JSON-Objekt enthält\nif (msg.payload && typeof msg.payload === 'object' && msg.payload.Datum && msg.payload.Preis) {\n    // Extrahiere Datum und Preis aus dem JSON-Objekt\n    const datumParts = msg.payload.Datum.split('-'); // Splitte das Datum in Tag, Monat und Jahr\n    const tag = parseInt(datumParts[0], 10);\n    const monat = parseInt(datumParts[1], 10) - 1; // Monate in JavaScript sind 0-basiert\n    const jahr = parseInt(datumParts[2], 10);\n\n    // Erstelle ein neues Datumobjekt\n    const datumObjekt = new Date(jahr, monat, tag);\n\n    // Ändere msg.timestamp zu dem angegebenen Datum\n    msg.timestamp = datumObjekt.getTime(); // Hier wird das Datum in Millisekunden seit dem 1. Januar 1970 (Unix-Zeit) umgewandelt\n\n    // Setze msg.payload auf den Preis\n    msg.payload = msg.payload.Preis;\n\n    // Fertige Nachricht senden\n    return msg;\n} else {\n    // Wenn die Nachricht nicht das erwartete Format hat, logge einen Fehler und sende die unveränderte Nachricht\n    node.error(\"Ungültiges Nachrichtenformat. Erwarte {\\\"Datum\\\":\\\"07-04-2024\\\",\\\"Preis\\\":397}\");\n    return null;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 980,
+        "wires": [
+            [
+                "2f422bd1a5e03fc6",
+                "30104e7b77cbfd31"
+            ]
+        ]
+    },
+    {
+        "id": "3cbd8d858fa50475",
+        "type": "debug",
+        "z": "f5cb77edbcc82750",
+        "name": "S21FE",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1230,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "d9b5fb784dacdfcd",
+        "type": "http request",
+        "z": "f5cb77edbcc82750",
+        "name": "Preis abfragen",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://www.backmarket.de/de-de/p/samsung-samsung-galaxy-s21-256-gb-schwarz-ohne-vertrag/dd017ee0-5706-4b77-b720-4d90c1dcd1ad#l=12&scroll=false",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 520,
+        "y": 1100,
+        "wires": [
+            [
+                "23e5d4a8aefdda31"
+            ]
+        ]
+    },
+    {
+        "id": "25a4574fe69dd369",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Tägliche Abfrage",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "20 14 * * *",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 290,
+        "y": 1100,
+        "wires": [
+            [
+                "d9b5fb784dacdfcd"
+            ]
+        ]
+    },
+    {
+        "id": "23e5d4a8aefdda31",
+        "type": "html",
+        "z": "f5cb77edbcc82750",
+        "name": "Preis Extrahieren",
+        "property": "",
+        "outproperty": "",
+        "tag": "div[data-test=\"normal-price\"][class=\"text-primary\"]",
+        "ret": "text",
+        "as": "single",
+        "x": 770,
+        "y": 1100,
+        "wires": [
+            [
+                "21a35f84fbd60efa"
+            ]
+        ]
+    },
+    {
+        "id": "21a35f84fbd60efa",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "String to Number",
+        "func": "var priceArray = msg.payload; // Annahme: msg.payload ist das Array mit einem String\nvar priceString = priceArray[0]; // Extrahiere den String aus dem Array\nvar priceNumber = parseFloat(priceString.replace(',', '.')); ; // Entferne alle Nicht-Zahlen-Zeichen und konvertiere den String in eine Zahl\n\nmsg.payload = priceNumber; // Setze den numerischen Wert als das neue Payload\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1010,
+        "y": 1100,
+        "wires": [
+            [
+                "f3498c925577b007",
+                "6bec7efe0199157e"
+            ]
+        ]
+    },
+    {
+        "id": "7576db7e336918ba",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Test Value",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "397",
+        "payloadType": "num",
+        "x": 260,
+        "y": 1160,
+        "wires": [
+            [
+                "6bec7efe0199157e"
+            ]
+        ]
+    },
+    {
+        "id": "6bec7efe0199157e",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "Datum hinzufügen",
+        "func": "// Erhalten Sie den eingehenden Wert\nvar eingehenderWert = msg.payload;\n\n// Erstellen Sie ein Date-Objekt für das aktuelle Datum\nvar aktuellesDatum = new Date();\n\n// Extrahieren Sie Tag, Monat und Jahr\nvar tag = aktuellesDatum.getDate();\nvar monat = aktuellesDatum.getMonth() + 1; // Monate werden von 0 bis 11 gezählt, daher +1\nvar jahr = aktuellesDatum.getFullYear();\n\n// Fügen Sie führende Nullen hinzu, falls erforderlich\nif (tag < 10) {\n    tag = '0' + tag;\n}\nif (monat < 10) {\n    monat = '0' + monat;\n}\n\n// Erstellen Sie das Datum im gewünschten Format (DD-MM-YYYY)\nvar formatiertesDatum = tag + '-' + monat + '-' + jahr;\n\n// Erstellen Sie das JSON-Objekt mit dem Datum und dem empfangenen Wert\nvar jsonObjekt = {\n    \"datum\": formatiertesDatum,\n    \"preis\": eingehenderWert\n};\n\n// Senden Sie das JSON-Objekt weiter\nmsg.payload = jsonObjekt;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 530,
+        "y": 1160,
+        "wires": [
+            [
+                "51ce42b99046e8e4"
+            ]
+        ]
+    },
+    {
+        "id": "51ce42b99046e8e4",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "JSON zu CSV",
+        "func": "var datum = msg.payload.datum; // Datum aus dem JSON-Objekt\nvar wert = msg.payload.preis; // Wert aus dem JSON-Objekt\n\n// CSV-Format erstellen\nvar csvString = datum + ',' + wert;\n\nmsg.payload = csvString; // Das CSV-Format als Payload setzen\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 1160,
+        "wires": [
+            [
+                "c0dc69bafb73fce4"
+            ]
+        ]
+    },
+    {
+        "id": "c0dc69bafb73fce4",
+        "type": "file",
+        "z": "f5cb77edbcc82750",
+        "name": "Speichern in CSV",
+        "filename": "/home/spb/s21-schwarz.csv",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 1010,
+        "y": 1160,
+        "wires": [
+            [
+                "3223689a5d110ce0"
+            ]
+        ]
+    },
+    {
+        "id": "3223689a5d110ce0",
+        "type": "file in",
+        "z": "f5cb77edbcc82750",
+        "name": "Lesen aus CSV",
+        "filename": "/home/spb/s21-schwarz.csv",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 520,
+        "y": 1220,
+        "wires": [
+            [
+                "4050dcda50f466e8"
+            ]
+        ]
+    },
+    {
+        "id": "f05b76bed1441ad7",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Update Graph",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 270,
+        "y": 1220,
+        "wires": [
+            [
+                "3223689a5d110ce0"
+            ]
+        ]
+    },
+    {
+        "id": "4050dcda50f466e8",
+        "type": "csv",
+        "z": "f5cb77edbcc82750",
+        "name": "CSV zu JSON",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": true,
+        "x": 760,
+        "y": 1220,
+        "wires": [
+            [
+                "9ee27072ee7cb418"
+            ]
+        ]
+    },
+    {
+        "id": "237bbfb5f59cf1af",
+        "type": "ui_chart",
+        "z": "f5cb77edbcc82750",
+        "name": "",
+        "group": "34cf65dc63cc3a0b",
+        "order": 5,
+        "width": "6",
+        "height": "6",
+        "label": "S21 Schwarz",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "Y-M-D",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "300",
+        "ymax": "450",
+        "removeOlder": "10",
+        "removeOlderPoints": "1000",
+        "removeOlderUnit": "604800",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 1250,
+        "y": 1220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9ee27072ee7cb418",
+        "type": "function",
+        "z": "f5cb77edbcc82750",
+        "name": "Convert to Chart Data",
+        "func": "// Überprüfen, ob die Nachricht ein gültiges JSON-Objekt enthält\nif (msg.payload && typeof msg.payload === 'object' && msg.payload.Datum && msg.payload.Preis) {\n    // Extrahiere Datum und Preis aus dem JSON-Objekt\n    const datumParts = msg.payload.Datum.split('-'); // Splitte das Datum in Tag, Monat und Jahr\n    const tag = parseInt(datumParts[0], 10);\n    const monat = parseInt(datumParts[1], 10) - 1; // Monate in JavaScript sind 0-basiert\n    const jahr = parseInt(datumParts[2], 10);\n\n    // Erstelle ein neues Datumobjekt\n    const datumObjekt = new Date(jahr, monat, tag);\n\n    // Ändere msg.timestamp zu dem angegebenen Datum\n    msg.timestamp = datumObjekt.getTime(); // Hier wird das Datum in Millisekunden seit dem 1. Januar 1970 (Unix-Zeit) umgewandelt\n\n    // Setze msg.payload auf den Preis\n    msg.payload = msg.payload.Preis;\n\n    // Fertige Nachricht senden\n    return msg;\n} else {\n    // Wenn die Nachricht nicht das erwartete Format hat, logge einen Fehler und sende die unveränderte Nachricht\n    node.error(\"Ungültiges Nachrichtenformat. Erwarte {\\\"Datum\\\":\\\"07-04-2024\\\",\\\"Preis\\\":397}\");\n    return null;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 1220,
+        "wires": [
+            [
+                "237bbfb5f59cf1af",
+                "117f428692af9105"
+            ]
+        ]
+    },
+    {
+        "id": "f3498c925577b007",
+        "type": "debug",
+        "z": "f5cb77edbcc82750",
+        "name": "S21",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1230,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "5f5d786072f4118d",
+        "type": "inject",
+        "z": "f5cb77edbcc82750",
+        "name": "Update all",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 260,
+        "y": 60,
+        "wires": [
+            [
+                "c9c4fbb5c3bc55ab",
+                "020b3e126e80afb4",
+                "7d5424f3c9d2c133",
+                "c90b96cf945d8533",
+                "3223689a5d110ce0"
+            ]
+        ]
+    },
+    {
+        "id": "7fe8e20fe8b8808f",
+        "type": "ui_text",
+        "z": "f5cb77edbcc82750",
+        "group": "34cf65dc63cc3a0b",
+        "order": 6,
+        "width": "6",
+        "height": "1",
+        "name": "",
+        "label": "Letzter Preis S22+",
+        "format": "{{msg.payload}}",
+        "layout": "row-center",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1270,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "aada25a80b373942",
+        "type": "ui_text",
+        "z": "f5cb77edbcc82750",
+        "group": "34cf65dc63cc3a0b",
+        "order": 7,
+        "width": "6",
+        "height": "1",
+        "name": "",
+        "label": "Letzter Preis S22",
+        "format": "{{msg.payload}}",
+        "layout": "row-center",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1270,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "44c2fb79b1f45c71",
+        "type": "ui_text",
+        "z": "f5cb77edbcc82750",
+        "group": "34cf65dc63cc3a0b",
+        "order": 8,
+        "width": "6",
+        "height": "1",
+        "name": "",
+        "label": "Letzter Preis S21+",
+        "format": "{{msg.payload}}",
+        "layout": "row-center",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1270,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "30104e7b77cbfd31",
+        "type": "ui_text",
+        "z": "f5cb77edbcc82750",
+        "group": "34cf65dc63cc3a0b",
+        "order": 9,
+        "width": "6",
+        "height": "1",
+        "name": "",
+        "label": "Letzter Preis S21Fe",
+        "format": "{{msg.payload}}",
+        "layout": "row-center",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1280,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "117f428692af9105",
+        "type": "ui_text",
+        "z": "f5cb77edbcc82750",
+        "group": "34cf65dc63cc3a0b",
+        "order": 10,
+        "width": "6",
+        "height": "1",
+        "name": "",
+        "label": "Letzter Preis S21",
+        "format": "{{msg.payload}}",
+        "layout": "row-center",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1270,
+        "y": 1160,
+        "wires": []
+    },
+    {
+        "id": "34cf65dc63cc3a0b",
+        "type": "ui_group",
+        "name": "Backmarket",
+        "tab": "6f112ed8d4e6330c",
+        "order": 1,
+        "disp": true,
+        "width": "30",
+        "collapse": true,
+        "className": ""
+    },
+    {
+        "id": "6f112ed8d4e6330c",
+        "type": "ui_tab",
+        "name": "Home",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
