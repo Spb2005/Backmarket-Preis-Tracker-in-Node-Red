@@ -13,9 +13,10 @@ Es werden keine Datenbanken benötigt, lediglich Node-Red und das Dashboard-Plug
    
    ![grafik](https://github.com/Spb2005/Backmarket-Preis-Tracker-in-Node-Red/assets/92474938/84af6b62-3081-40a6-a063-60c10421cd5e)
 6. Führe die Preisabfrage erneut durch
-7. Passe ggf. die Namen der Grafiken an
-8. Passe ggf. das Dashboard-Layout an
-9. Ändere ggf. die tägliche Abfragezeit (Da das Abfragen ca. 15s dauert, empfehle ich, nicht alle Tracker gleichzeitig abzufragen)
+7. Passe den Variablen Namen in den Nodes "Reset Min Price + Reset Chart" und "Min Price" an. (in V1.1)
+8. Passe ggf. die Namen der Grafiken an
+9. Passe ggf. das Dashboard-Layout an
+10. Ändere ggf. die tägliche Abfragezeit (Da das Abfragen ca. 15s dauert, empfehle ich, nicht alle Tracker gleichzeitig abzufragen)
 
 ## Bilder
 ![grafik](https://github.com/Spb2005/Backmarket-Preis-Tracker-in-Node-Red/assets/92474938/0fab47ca-07c8-4c7b-8076-daee80f3fd86)
