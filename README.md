@@ -19,8 +19,10 @@ Es werden keine Datenbanken benötigt, lediglich Node-Red und das Dashboard-Plug
 10. Ändere ggf. die tägliche Abfragezeit (Da das Abfragen ca. 15s dauert, empfehle ich, nicht alle Tracker gleichzeitig abzufragen)
 
 ## Bilder
-![grafik](https://github.com/Spb2005/Backmarket-Preis-Tracker-in-Node-Red/assets/92474938/0fab47ca-07c8-4c7b-8076-daee80f3fd86)
-![grafik](https://github.com/Spb2005/Backmarket-Preis-Tracker-in-Node-Red/assets/92474938/1e749a0b-d25a-40dc-a901-fb4ef5a51fbb)
-![grafik](https://github.com/Spb2005/Backmarket-Preis-Tracker-in-Node-Red/assets/92474938/9ebafd17-8056-42ca-b2cf-734927e314d1)
+![grafik](https://github.com/user-attachments/assets/606b7651-d6f8-41c5-bdab-ef9974fe5f51)
+![grafik](https://github.com/user-attachments/assets/b5e40127-02fa-4408-88ff-3fe9e7538587) (Preis Tracker V1.1)
+![grafik](https://github.com/user-attachments/assets/63301406-3933-4dfa-a41a-05e4839d44df) (Beispiel Tracker V1.1)
+
+
 
 
